@@ -1,15 +1,12 @@
-//Dependencies
-import {useEffect, useState} from "react";
-import {getTrendingMovies, updateSearchCount} from "./appwrite.js";
-import {useDebounce} from "react-use";
+import {useEffect, useState} from 'react'
+import Search from './components/Search.jsx'
+import Spinner from './components/Spinner.jsx'
+import MovieCard from './components/MovieCard.jsx'
+import {useDebounce} from 'react-use'
+import {getTrendingMovies, updateSearchCount} from './appwrite.js'
 
-//Components
-import Search from "./components/Search.jsx";
-import Spinner from "./components/Spinner.jsx";
-import MovieCard from "./components/MovieCard.jsx";
-
-//API REQUEST
 const API_BASE_URL = 'https://api.themoviedb.org/3';
+
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 const API_OPTIONS = {
@@ -18,20 +15,24 @@ const API_OPTIONS = {
         accept: 'application/json',
         Authorization: `Bearer ${API_KEY}`
     }
-};
+}
 
-function App() {
-    const [searchTerm, setSearchTerm] = useState("")
+const App = () => {
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const [movieList, setMovieList] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
-    const [trendingMovies, setTrendingMovies] = useState([]);
-    const [moviesList, setMoviesList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [debauncedSearchTerm, setDebauncedSearchTerm] = useState('')
 
-    useDebounce(() => setDebauncedSearchTerm(searchTerm), 500, [searchTerm])
+    const [trendingMovies, setTrendingMovies] = useState([]);
+
+    // Debounce the search term to prevent making too many API requests
+    // by waiting for the user to stop typing for 500ms
+    useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm])
 
     const fetchMovies = async (query = '') => {
-        setIsLoading(true)
+        setIsLoading(true);
         setErrorMessage('');
 
         try {
@@ -47,26 +48,29 @@ function App() {
 
             const data = await response.json();
 
-            if (data.response === 'False') {
-                setErrorMessage(data.Error || 'Failed to fecth movies');
-                setMoviesList([])
+            if (data.Response === 'False') {
+                setErrorMessage(data.Error || 'Failed to fetch movies');
+                setMovieList([]);
                 return;
             }
-            setMoviesList(data.results)
+
+            setMovieList(data.results || []);
+
             if (query && data.results.length > 0) {
-                await updateSearchCount(query, data.results[0])
+                await updateSearchCount(query, data.results[0]);
             }
         } catch (error) {
             console.error(`Error fetching movies: ${error}`);
-            setErrorMessage('Failed to fetch movies. Please try again later.');
+            setErrorMessage('Error fetching movies. Please try again later.');
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
     }
 
     const loadTrendingMovies = async () => {
         try {
             const movies = await getTrendingMovies();
+
             setTrendingMovies(movies);
         } catch (error) {
             console.error(`Error fetching trending movies: ${error}`);
@@ -74,8 +78,8 @@ function App() {
     }
 
     useEffect(() => {
-        fetchMovies(debauncedSearchTerm);
-    }, [debauncedSearchTerm]);
+        fetchMovies(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     useEffect(() => {
         loadTrendingMovies();
@@ -83,17 +87,18 @@ function App() {
 
     return (
         <main>
-            <div className={"pattern"}/>
+            <div className="pattern"/>
 
-            <div className={"wrapper"}>
+            <div className="wrapper">
                 <header>
-                    <img src="/hero.png" alt="Hero Banner"/>
-                    <h1>Find <span className={"text-gradient"}>Movies</span> You&#39;ll Enjoy Without the Hassle</h1>
+                    <img src="./hero.png" alt="Hero Banner"/>
+                    <h1>Find <span className="text-gradient">Movies</span> You&#39;ll Enjoy Without the Hassle</h1>
+
                     <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm}/>
                 </header>
 
                 {trendingMovies.length > 0 && (
-                    <section className={'trending'}>
+                    <section className="trending">
                         <h2>Trending Movies</h2>
 
                         <ul>
@@ -107,24 +112,21 @@ function App() {
                     </section>
                 )}
 
-
-                <section className={'all-movies'}>
+                <section className="all-movies">
                     <h2>All Movies</h2>
 
                     {isLoading ? (
                         <Spinner/>
                     ) : errorMessage ? (
-                        <p className={'text-red-500'}>{errorMessage}</p>
+                        <p className="text-red-500">{errorMessage}</p>
                     ) : (
                         <ul>
-                            {moviesList.map((movie) => (
+                            {movieList.map((movie) => (
                                 <MovieCard key={movie.id} movie={movie}/>
                             ))}
                         </ul>
                     )}
                 </section>
-
-
             </div>
         </main>
     )
