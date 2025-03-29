@@ -1,9 +1,9 @@
-import {useEffect, useState} from 'react'
+import { useEffect, useState } from 'react'
 import Search from './components/Search.jsx'
 import Spinner from './components/Spinner.jsx'
 import MovieCard from './components/MovieCard.jsx'
-import {useDebounce} from 'react-use'
-import {getTrendingMovies, updateSearchCount} from './appwrite.js'
+import { useDebounce } from 'react-use'
+import { getTrendingMovies, updateSearchCount } from './appwrite.js'
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 
@@ -42,13 +42,13 @@ const App = () => {
 
             const response = await fetch(endpoint, API_OPTIONS);
 
-            if (!response.ok) {
+            if(!response.ok) {
                 throw new Error('Failed to fetch movies');
             }
 
             const data = await response.json();
 
-            if (data.Response === 'False') {
+            if(data.Response === 'False') {
                 setErrorMessage(data.Error || 'Failed to fetch movies');
                 setMovieList([]);
                 return;
@@ -56,7 +56,7 @@ const App = () => {
 
             setMovieList(data.results || []);
 
-            if (query && data.results.length > 0) {
+            if(query && data.results.length > 0) {
                 await updateSearchCount(query, data.results[0]);
             }
         } catch (error) {
@@ -91,10 +91,10 @@ const App = () => {
 
             <div className="wrapper">
                 <header>
-                    <img src="./hero.png" alt="Hero Banner"/>
-                    <h1>Find <span className="text-gradient">Movies</span> You&#39;ll Enjoy Without the Hassle</h1>
+                    <img src="./hero.png" alt="Hero Banner" />
+                    <h1>Find <span className="text-gradient">Movies</span> You'll Enjoy Without the Hassle</h1>
 
-                    <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm}/>
+                    <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
                 </header>
 
                 {trendingMovies.length > 0 && (
@@ -105,7 +105,7 @@ const App = () => {
                             {trendingMovies.map((movie, index) => (
                                 <li key={movie.$id}>
                                     <p>{index + 1}</p>
-                                    <img src={movie.poster_url} alt={movie.title}/>
+                                    <img src={movie.poster_url} alt={movie.title} />
                                 </li>
                             ))}
                         </ul>
@@ -116,13 +116,13 @@ const App = () => {
                     <h2>All Movies</h2>
 
                     {isLoading ? (
-                        <Spinner/>
+                        <Spinner />
                     ) : errorMessage ? (
                         <p className="text-red-500">{errorMessage}</p>
                     ) : (
                         <ul>
                             {movieList.map((movie) => (
-                                <MovieCard key={movie.id} movie={movie}/>
+                                <MovieCard key={movie.id} movie={movie} />
                             ))}
                         </ul>
                     )}
